@@ -12,7 +12,5 @@ import com.wangshuos.qrcodepay.request.OrderRequest;
 public interface AlipayService {
     public String getQrCode(OrderRequest orderRequest) throws AlipayApiException;
     public String getQrCode() throws AlipayApiException;
-
-
     public String generateQRCodeBase64(OrderRequest orderRequest) throws AlipayApiException;
 }

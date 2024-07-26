@@ -1,4 +1,4 @@
-package com.sg.bjftviewprotect.system.util;
+package com.wangshuos.common.util;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +35,28 @@ public class TimeUtil {
     public static LocalDateTime parseYYYYMMDD(String dateTime) {
         dateTime = dateTime.substring(0, 10) + " 00:00:00";
         return parse(dateTime);
+    }
+
+    /**
+     * 获取当前时间   yyyyMMddHHmmss
+     */
+    public static String getNow() {
+        // 获取当前日期和时间
+        LocalDateTime now = LocalDateTime.now();
+        // 格式化日期和时间
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        return now.format(formatter);
+    }
+
+    /**
+     * 获取当前时间   yyyy-MM-dd HH:mm:ss
+     */
+    public static String getNowStandardTime() {
+        // 获取当前日期和时间
+        LocalDateTime now = LocalDateTime.now();
+        // 格式化日期和时间
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return now.format(formatter);
     }
 
 

@@ -1,4 +1,4 @@
-package com.sg.bjftviewprotect.system.util;
+package com.wangshuos.common.util;
 
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.config.OutputFile;

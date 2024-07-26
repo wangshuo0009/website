@@ -1,14 +1,12 @@
-package com.sg.bjftviewprotect.system.common;
+package com.wangshuos.common;
 
-import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
 
 @Data
-@ApiModel(value = "统一返回")
+@Schema(description = "统一返回")
 public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;

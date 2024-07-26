@@ -1,4 +1,4 @@
-package com.sg.bjftviewprotect.system.util;
+package com.wangshuos.common.util;
 
 public class StringUtil {
 

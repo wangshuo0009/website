@@ -1,4 +1,4 @@
-package com.sg.bjftviewprotect.system.util;
+package com.wangshuos.common.util;
 
 import org.springframework.web.multipart.MultipartFile;
 

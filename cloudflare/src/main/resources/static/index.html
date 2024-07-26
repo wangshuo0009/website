@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <title>wangshuo</title>
-    <link rel="icon" href="images/phone/露娜cos.jpeg" type="image/jpeg">
-    <link rel="shortcut icon" href="images/phone/露娜cos.jpeg" type="image/jpeg">
+    <link rel="icon" href="images/露娜cos.jpeg" type="image/jpeg">
+    <link rel="shortcut icon" href="images/露娜cos.jpeg" type="image/jpeg">
     <style>
         body {
             display: flex;
@@ -16,14 +16,17 @@
             height: 100vh;
             margin: 0;
             padding: 0;
+            overflow: hidden;
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
         }
+
         .content {
             display: none;
             text-align: center;
         }
+
         p {
             font-size: 50px;
             font-weight: bold;
@@ -34,19 +37,23 @@
             animation: rainbow 5s linear infinite;
             margin: 20px 0 0 0;
         }
+
         img {
             max-width: 80%;
             height: auto;
             border: 5px solid white;
             border-radius: 10px;
         }
+
         a {
             color: #fff;
             text-decoration: none;
         }
+
         a:hover, a:active, a:visited {
             color: #fff;
         }
+
         footer {
             position: absolute;
             bottom: 10px;
@@ -55,6 +62,7 @@
             font-size: 12px;
             color: #ccc;
         }
+
         @keyframes rainbow {
             0% {
                 background-position: 0% 50%;
@@ -63,7 +71,7 @@
                 background-position: 100% 50%;
             }
         }
-        /* 手机设备 */
+
         @media only screen and (max-width: 768px) {
             body {
                 background-size: cover;
@@ -71,14 +79,13 @@
                 background-position: center;
             }
         }
-        /* 平板和电脑设备 */
+
         @media only screen and (min-width: 769px) {
             body {
                 background-image: url('./images/wallhaven-l8pvxp.jpg');
             }
         }
 
-        /* 弹框样式 */
         .modal {
             display: none;
             position: fixed;
@@ -90,25 +97,28 @@
             justify-content: center;
             align-items: center;
         }
+
         .modal-content {
             background: #fff;
-            padding: 20px;
-            border-radius: 15px; /* 边角圆润 */
-            max-width: 400px; /* 设置为支付页面的宽度 */
+            border-radius: 15px;
             width: 100%;
-            height: 338px; /* 高度调整为原来的3/4 */
+            max-width: 400px;
             box-sizing: border-box;
             position: relative;
-            overflow: hidden; /* 确保内容不会溢出 */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影 */
+            overflow: hidden;
+            margin: auto;
         }
+
         .modal-content iframe {
             width: 100%;
-            height: 100%;
+            height: 300px; /* 设置默认高度 */
             border: none;
-            border-radius: 15px; /* 使iframe内容区域边角圆润 */
+            border-radius: 15px;
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
+
         .close {
             position: absolute;
             top: 10px;
@@ -116,32 +126,108 @@
             font-size: 20px;
             cursor: pointer;
         }
+
+        .payment-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .payment-container input, .payment-container button {
+            width: 85%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            text-align: center;
+            position: relative;
+        }
+
+        .payment-container button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center; /* 垂直居中对齐 */
+            justify-content: center; /* 水平居中对齐 */
+        }
+
+        .payment-container button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 按钮的加载样式 */
+        .payment-container button.loading {
+            background-color: #ddd;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        /* 加载动画 */
+        .payment-container button.loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px; /* 动画的宽度 */
+            height: 20px; /* 动画的高度 */
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #007bff;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            box-sizing: border-box; /* 确保动画在按钮内对齐 */
+        }
+
+        /* 旋转动画 */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none !important; /* 使用 !important 强制应用隐藏 */
+        }
     </style>
     <script>
+        // 全局变量跟踪弹框显示状态
+        let isModalVisible = false;
+
         document.addEventListener('DOMContentLoaded', function() {
-            var elementsVisible = false;
-            var images = [
+            let elementsVisible = false;
+            const images = [
                 './images/phone/紫色女.jpeg',
                 './images/phone/露娜cos.jpeg',
                 './images/phone/jk女.jpeg',
                 './images/phone/包臀女.jpeg'
             ];
-            var currentImageIndex = Math.floor(Math.random() * images.length);
+            let currentImageIndex = Math.floor(Math.random() * images.length);
+
             if (window.innerWidth <= 768) {
                 document.body.style.backgroundImage = 'url(' + images[currentImageIndex] + ')';
             }
 
             function handleClick() {
-                var contentDiv = document.getElementById('contentDiv');
-                if (!elementsVisible) {
-                    contentDiv.style.display = 'block';
-                } else {
-                    contentDiv.style.display = 'none';
-                }
+                if (isModalVisible) return; // 如果弹框显示，忽略点击事件
+
+                const contentDiv = document.getElementById('contentDiv');
+                contentDiv.style.display = elementsVisible ? 'none' : 'block';
                 elementsVisible = !elementsVisible;
             }
 
             function handleDoubleClick() {
+                if (isModalVisible) return; // 如果弹框显示，忽略双击事件
+
                 if (window.innerWidth <= 768) {
                     currentImageIndex = (currentImageIndex + 1) % images.length;
                     document.body.style.backgroundImage = 'url(' + images[currentImageIndex] + ')';
@@ -151,16 +237,170 @@
             document.body.addEventListener('click', handleClick);
             document.body.addEventListener('dblclick', handleDoubleClick);
 
-            // 打开支付弹框
-            document.getElementById('donateLink').addEventListener('click', function(event) {
-                event.preventDefault();
-                document.getElementById('paymentModal').style.display = 'flex';
-            });
+            const donateLink = document.getElementById('donateLink');
+            const closeModal = document.getElementById('closeModal');
+            const amountInput = document.getElementById('amount');
+            const paymentForm = document.getElementById('paymentForm');
 
-            // 关闭弹框
-            document.getElementById('closeModal').addEventListener('click', function() {
-                document.getElementById('paymentModal').style.display = 'none';
-            });
+            if (donateLink) {
+                donateLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const modal = document.getElementById('paymentModal');
+                    modal.style.display = 'flex';
+                    document.body.style.pointerEvents = 'none';
+                    modal.style.pointerEvents = 'auto'; // 允许弹框的交互
+                    isModalVisible = true; // 设置弹框显示状态为 true
+                });
+            }
+
+            if (closeModal) {
+                closeModal.addEventListener('click', function(event) {
+                    event.stopPropagation(); // 阻止事件冒泡
+                    const modal = document.getElementById('paymentModal');
+                    modal.style.display = 'none';
+                    document.body.style.pointerEvents = 'auto';
+                    isModalVisible = false; // 重置弹框显示状态为 false
+                    resetPaymentForm(); // 仅重置表单和二维码容器内容
+                });
+            }
+
+            if (paymentForm) {
+                paymentForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const amount = amountInput.value;
+
+                    // 校验金额是否有效
+                    if (!amount || parseFloat(amount) <= 0) {
+                        alert('请输入有效的金额、最小为0.01元');
+                        return;
+                    }
+
+                    const submitButton = paymentForm.querySelector('button');
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.classList.add('loading'); // 添加加载样式
+                    }
+
+                    const paymentData = {
+                        orderId: "wangshuo-orderId",
+                        productId: "wangshuo-productId",
+                        productName: "商品名称-捐赠",
+                        productPrice: 0.99,
+                        productQuantity: 1,
+                        amount: amount,
+                    };
+
+                    fetch('https://pay.wangshuos.com/pay/alipay', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(paymentData)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.code === 200) {
+                                // 隐藏确认支付按钮
+                                if (submitButton) {
+                                    submitButton.classList.add('hidden'); // 隐藏按钮
+                                }
+
+                                const img = document.createElement('img');
+                                img.src = data.data;
+                                img.alt = 'QR Code';
+                                const qrCodeContainer = document.getElementById('qrCodeContainer');
+                                qrCodeContainer.innerHTML = ''; // 清空容器
+                                qrCodeContainer.appendChild(img);
+                                qrCodeContainer.style.display = 'block'; // 显示二维码容器
+                            } else {
+                                alert('支付失败：' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('支付请求失败:', error);
+                            alert('支付请求失败，请稍后重试。');
+                        })
+                        .finally(() => {
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                submitButton.classList.remove('loading'); // 移除加载样式
+                            }
+                        });
+                });
+            }
+
+            function resetPaymentForm() {
+                const amountInput = document.getElementById('amount');
+                const qrCodeContainer = document.getElementById('qrCodeContainer');
+                const submitButton = document.getElementById('paymentForm').querySelector('button');
+
+                amountInput.value = ''; // 重置输入框
+                amountInput.disabled = false; // 解除输入框禁用
+                qrCodeContainer.innerHTML = ''; // 清空二维码容器
+
+                // 确保确认按钮恢复到原始状态
+                if (submitButton) {
+                    submitButton.classList.remove('hidden'); // 显示按钮
+                    submitButton.disabled = false; // 解除按钮禁用
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const amountInput = document.getElementById('amount');
+
+            if (amountInput) {
+                let debounceTimeout;
+
+                amountInput.addEventListener('input', function(e) {
+                    // 清除上一个定时器
+                    clearTimeout(debounceTimeout);
+
+                    // 设置新的定时器
+                    debounceTimeout = setTimeout(() => {
+                        let value = e.target.value;
+
+                        // 移除非数字字符（包括小数点）
+                        value = value.replace(/[^0-9.]/g, '');
+
+                        // 如果输入包含多个小数点，只保留第一个
+                        const parts = value.split('.');
+                        if (parts.length > 2) {
+                            value = parts[0] + '.' + parts.slice(1).join('');
+                        }
+
+                        // 限制小数点后最多两位
+                        if (parts[1] && parts[1].length > 2) {
+                            parts[1] = parts[1].slice(0, 2);
+                            value = parts.join('.');
+                        }
+
+                        // 如果没有小数点，补上小数点和零
+                        if (parts.length === 1) {
+                            value = value + '.00';
+                        } else if (parts[1].length === 0) {
+                            value = value + '00'; // 添加两位零
+                        } else if (parts[1].length === 1) {
+                            value = value + '0'; // 添加一位零
+                        }
+
+                        // 确保数值至少为0.01
+                        if (parseFloat(value) < 0.01) {
+                            value = '0.01';
+                        }
+
+                        // 更新输入框的值
+                        e.target.value = value;
+
+                        // 校验金额是否有效
+                        if (!value || parseFloat(value) <= 0) {
+                            e.target.setCustomValidity('请输入有效的金额。');
+                        } else {
+                            e.target.setCustomValidity('');
+                        }
+                    }, 1500); // 两秒的延迟
+                });
+            }
         });
     </script>
 </head>
@@ -173,14 +413,22 @@
     <a href="https://github.com/wangshuo0009/cloudflare" target="_blank">&copy; 2024 wangshuo. 保留所有权利.</a> |
     <a href="#" id="donateLink">捐赠</a>
 </footer>
-
-<!-- 支付弹框 -->
 <div id="paymentModal" class="modal">
     <div class="modal-content">
         <span id="closeModal" class="close">&times;</span>
-        <iframe src="./pay/pay.html" title="支付页面"></iframe>
+        <div class="payment-container">
+            <h2>支付页面</h2>
+            <label for="amount">输入金额</label>
+            <input type="text" id="amount" inputmode="decimal" placeholder="0.00" required>
+            <form id="paymentForm">
+                <button type="submit">确认支付</button>
+            </form>
+            <div id="qrCodeContainer">
+
+            </div>
+        </div>
     </div>
 </div>
-
 </body>
 </html>
+

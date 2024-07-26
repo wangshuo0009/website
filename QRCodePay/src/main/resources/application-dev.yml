@@ -68,8 +68,8 @@ logging:
 
 
 alipay:
-  alipayPublicKeyUrl: /Users/wangshuo/Documents/支付宝开放平台密钥工具/2021004161619844/2021004161619844alipayPublicKey_RSA2.txt
-  appPublicKeyUrl: /Users/wangshuo/Documents/支付宝开放平台密钥工具/2021004161619844/2021004161619844应用公钥RSA2048.txt
-  appPrivateKeyUrl: /Users/wangshuo/Documents/支付宝开放平台密钥工具/2021004161619844/2021004161619844应用私钥RSA2048-敏感数据，请妥善保管.txt
+  alipayPublicKeyUrl: /Users/wangshuo/IdeaProjects/website/2021004161619844/2021004161619844alipayPublicKey_RSA2.txt
+  appPublicKeyUrl: /Users/wangshuo/IdeaProjects/website/2021004161619844/2021004161619844应用公钥RSA2048.txt
+  appPrivateKeyUrl: /Users/wangshuo/IdeaProjects/website/2021004161619844/2021004161619844应用私钥RSA2048-敏感数据，请妥善保管.txt
   appID: 2021004161619844
   serverUrl: https://openapi.alipay.com/gateway.do

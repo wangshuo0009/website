@@ -17,7 +17,9 @@ import com.wangshuos.qrcodepay.config.MyAlipayConfig;
 import com.wangshuos.qrcodepay.request.OrderRequest;
 import com.wangshuos.qrcodepay.service.AlipayService;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -28,6 +30,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.wangshuos.common.util.TimeUtil.getNow;
+
 /**
  * @ClassName AlipayServiceImpl
  * @Author wangshuo
@@ -37,6 +41,8 @@ import java.util.Map;
 @Service
 @Log4j2
 public class AlipayServiceImpl implements AlipayService {
+    @Autowired
+    private MyAlipayConfig myAlipayConfig;
     private static final OrderRequest orderRequest = new OrderRequest(){{
         setOrderId("wangshuo-orderId-01");
         setProductId("wangshuo-productId");
@@ -47,18 +53,25 @@ public class AlipayServiceImpl implements AlipayService {
     }};
 
     @Override
-    public String getQrCode(OrderRequest orderRequest) {
-        String orderId = orderRequest.getOrderId();
-        String productId = orderRequest.getProductId();
-        String productName = orderRequest.getProductName();
-        BigDecimal productPrice = orderRequest.getProductPrice();
-        Integer productQuantity = orderRequest.getProductQuantity();
+    public String getQrCode(OrderRequest orderRequest) throws AlipayApiException {
 
-        // 计算总价
-        BigDecimal totalPrice = productPrice.multiply(new BigDecimal(productQuantity));
+            String now = getNow();
+            String orderId = orderRequest.getOrderId() + now;
+            String productId = orderRequest.getProductId() + now;
+            String productName = orderRequest.getProductName();
+            BigDecimal productPrice = orderRequest.getProductPrice();
+            Integer productQuantity = orderRequest.getProductQuantity();
+            BigDecimal totalAmount = null;
 
-        try {
-            MyAlipayConfig myAlipayConfig = new MyAlipayConfig();
+            if (!ObjectUtils.isEmpty(orderRequest.getTotalAmount())){
+                totalAmount = orderRequest.getTotalAmount();
+            }else {
+                // 计算总价
+                totalAmount = productPrice.multiply(new BigDecimal(productQuantity));
+            }
+
+            //return generateQRCode("失败了");
+
             // 创建支付宝支付对象
             AlipayClient alipayClient = new DefaultAlipayClient(myAlipayConfig.getAlipayConfig());
 
@@ -67,40 +80,26 @@ public class AlipayServiceImpl implements AlipayService {
             AlipayTradePrecreateModel aliPayModel = new AlipayTradePrecreateModel();
             aliPayModel.setOutTradeNo(orderId);
             aliPayModel.setSubject(productName + ": ProductId" + productId + "; Order: " + orderId);
-            aliPayModel.setTotalAmount(String.valueOf(totalPrice));
+            aliPayModel.setTotalAmount(String.valueOf(totalAmount));
             aliPayRequest.setBizModel(aliPayModel);
 
             // 发起支付宝支付预下单请求
             AlipayTradePrecreateResponse aliPayResponse = alipayClient.execute(aliPayRequest);
             if (aliPayResponse.isSuccess()) {
                 String qrCodeUrl = aliPayResponse.getQrCode();
-                log.error("下单成功");
+                log.error("支付宝下单成功");
 
                 // 返回合一支付二维码URL
-                return qrCodeUrl;
+                return generateQRCode(qrCodeUrl);
             } else {
-                log.error("下单失败");
+                log.error("支付宝下单失败");
                 // 支付宝支付预下单失败
                 throw new AlipayApiException();
-                //return null;
             }
 
-        } catch (AlipayApiException e) {
-            // 定义资源
-            // 获取当前类的 ClassLoader
-            //ClassLoader classLoader = ClassLoader.class.getClassLoader();
-            //
-            //// 资源路径相对于 resources 文件夹
-            //URL resource = classLoader.getResource("images/example.png");
-            //Resource resource = new ClassPathResource("./images/加载失败了.png");
-            return generateQRCode("失败了");
-            //
-            //try {
-            //    //String s = encodeImageToBase64(resource.getURL().getPath());
-            //} catch (IOException ex) {
-            //    throw new RuntimeException(ex);
-            //}
-        }
+
+
+
     }
 
     //@Override
@@ -153,7 +152,6 @@ public class AlipayServiceImpl implements AlipayService {
         BigDecimal totalPrice = productPrice.multiply(new BigDecimal(productQuantity));
 
         try {
-            MyAlipayConfig myAlipayConfig = new MyAlipayConfig();
             // 创建支付宝支付对象
             AlipayClient alipayClient = new DefaultAlipayClient(myAlipayConfig.getAlipayConfig());
 
@@ -186,7 +184,7 @@ public class AlipayServiceImpl implements AlipayService {
 
 
     @Override
-    public String generateQRCodeBase64(OrderRequest orderRequest) {
+    public String generateQRCodeBase64(OrderRequest orderRequest) throws AlipayApiException {
         String qrCode = getQrCode(orderRequest);
         return generateQRCode(qrCode);
     }
