@@ -1,0 +1,75 @@
+
+#spring:
+#  datasource:
+#    url: jdbc:mysql://127.0.0.1:3306/bjftview_protect?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    username: root
+#    password: 12345678
+
+
+
+# springdoc-openapi项目配置
+springdoc:
+  group-configs:
+    - group: 1、后端管理接口
+      packages-to-scan: com.wangshuos.qrcodepay.controller
+#    - group: 2、数据管理
+#      packages-to-scan: com.sg.bjftviewprotect.system.controllerDate
+#    - group: 3、三维API接口
+#      packages-to-scan: com.sg.bjftviewprotect.view.controller
+
+#knife4j:
+#  enable: true
+#  documents:
+#    -
+#      group: 2.X版本
+#      name: 接口签名
+#      locations:
+#  setting:
+#    language: zh-CN
+#    enable-swagger-models: true
+#    enable-document-manage: true
+#    swagger-model-name: 实体类列表
+#    enable-version: false
+#    enable-reload-cache-parameter: false
+#    enable-after-script: true
+#    enable-filter-multipart-api-method-type: POST
+#    enable-filter-multipart-apis: false
+#    enable-request-cache: true
+#    enable-host: false
+#    enable-host-text: 127.0.0.1:8000
+#    enable-home-custom: false
+#    home-custom-path:
+#    enable-search: true #是否开启Ui界面中的搜索框
+#    enable-footer: false
+#    enable-footer-custom: true
+#    footer-custom-content: Apache License 2.0 | Copyright  2019-[浙江八一菜刀股份有限公司](https://gitee.com/xiaoym/knife4j)
+#    enable-dynamic-parameter: false
+#    enable-debug: true
+#    enable-open-api: true
+#    enable-group: true
+
+  cors: false
+  production: false
+  basic:
+    enable: false
+    username: test
+    password: 12313
+
+##log4j 日志输出
+logging:
+  level:
+    root: info
+#  config: classpath:log4j2.xml #log4j.properties配置文件（log4j后缀为*.properties）
+##  # path 和 name 同时启用，起作用的是name
+#  file:
+#    path: /Users/wangshuo/IdeaProjects/sg/bjftView-protect #设置存储在本地日志路径
+#    name: logs #设置存储在本地日志名称（日志文件默认存储在项目根目录）
+
+
+alipay:
+  alipayPublicKeyUrl: /Users/wangshuo/Documents/支付宝开放平台密钥工具/2021004161619844/2021004161619844alipayPublicKey_RSA2.txt
+  appPublicKeyUrl: /Users/wangshuo/Documents/支付宝开放平台密钥工具/2021004161619844/2021004161619844应用公钥RSA2048.txt
+  appPrivateKeyUrl: /Users/wangshuo/Documents/支付宝开放平台密钥工具/2021004161619844/2021004161619844应用私钥RSA2048-敏感数据，请妥善保管.txt
+  appID: 2021004161619844
+  serverUrl: https://openapi.alipay.com/gateway.do

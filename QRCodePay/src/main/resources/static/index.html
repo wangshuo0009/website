@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维码展示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        #qrCodeContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1>二维码展示</h1>
+<button id="generateButton">生成二维码</button>
+<div id="qrCodeContainer"></div>
+
+<script>
+    document.getElementById('generateButton').addEventListener('click', function() {
+        fetch('https://pay.wangshuos.com/pay/alipay')
+            .then(response => response.text()) // 假设返回的是纯文本格式的 Base64 编码
+            .then(data => {
+                if (data) {
+                    // 将 Base64 字符串设置为 img 的 src
+                    const img = document.createElement('img');
+                    img.src = data;
+                    img.alt = 'QR Code';
+                    img.style.width = '300px';  // 可选：设置图片宽度
+                    img.style.height = '300px'; // 可选：设置图片高度
+                    document.getElementById('qrCodeContainer').innerHTML = '';
+                    document.getElementById('qrCodeContainer').appendChild(img);
+                } else {
+                    console.error('No QR code data found.');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching the QR code:', error);
+            });
+    });
+</script>
+</body>
+</html>

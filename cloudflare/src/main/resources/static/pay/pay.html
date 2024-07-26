@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            overflow: hidden; /* 避免弹框出现滚动条 */
+        }
+        .payment-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px; /* 边角圆润 */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 400px;
+            height: 338px; /* 高度调整为原来的3/4 */
+            box-sizing: border-box;
+            text-align: center;
+            overflow: hidden; /* 避免内部滚动 */
+        }
+        .payment-container input, .payment-container button {
+            width: 66.66%;
+            padding: 10px;
+            margin: 10px auto;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            display: block;
+        }
+        .payment-container button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .payment-container button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="payment-container">
+    <h2>支付页面</h2>
+    <form id="paymentForm">
+        <label for="amount">输入金额：</label>
+        <input type="text" id="amount" inputmode="decimal" placeholder="0.00" required>
+        <button type="submit">确认支付</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('amount').addEventListener('input', function(e) {
+        let value = e.target.value;
+
+        // 只允许输入数字和一个小数点
+        value = value.replace(/[^0-9.]/g, '');
+
+        // 确保小数点后最多有两位数字
+        const parts = value.split('.');
+        if (parts[1] && parts[1].length > 2) {
+            parts[1] = parts[1].slice(0, 2);
+        }
+
+
+        // 防止首位输入多个零或者只有一个小数点
+        if (parts[0] === '') {
+            parts[0] = '0';
+        }
+
+        e.target.value = parts.join('.');
+    });
+
+    document.getElementById('paymentForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const amount = document.getElementById('amount').value;
+
+        // 这里可以添加其他校验逻辑，如最低金额限制等
+        if (parseFloat(amount) <= 0) {
+            alert('请输入有效的金额。');
+            return;
+        }
+
+        // 构建支付请求的负载
+        const paymentData = {
+            amount: amount,
+            // 其他必要的支付数据，如用户ID，支付方式等
+        };
+
+        // 发送POST请求到支付接口
+        fetch('https://your-payment-api-endpoint.com/submit-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(paymentData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                // 处理支付接口的响应
+                if (data.success) {
+                    alert('支付成功！');
+                    // 可能的下一步：重定向到支付成功页面或执行其他操作
+                } else {
+                    alert('支付失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('支付请求失败:', error);
+                alert('支付请求失败，请稍后重试。');
+            });
+    });
+</script>
+</body>
+</html>
