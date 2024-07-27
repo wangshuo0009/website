@@ -309,7 +309,13 @@
                                 img.src = data.data;
                                 img.alt = 'QR Code';
                                 const qrCodeContainer = document.getElementById('qrCodeContainer');
+                                // 创建一个包含文本的 span 元素，并设置样式
+                                const paymentText = document.createElement('span');
+                                paymentText.textContent = '支付宝扫码支付';
+                                paymentText.style.color = 'RGB(56, 117, 246)'; // 设置文字颜色为红色（您可以根据需要修改颜色）
+
                                 qrCodeContainer.innerHTML = ''; // 清空容器
+                                qrCodeContainer.appendChild(paymentText)
                                 qrCodeContainer.appendChild(img);
                                 qrCodeContainer.style.display = 'block'; // 显示二维码容器
                             } else {
