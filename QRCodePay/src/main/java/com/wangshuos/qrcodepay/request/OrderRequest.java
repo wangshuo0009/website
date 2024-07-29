@@ -24,5 +24,5 @@ public class OrderRequest {
     @Schema(description = "产品数量")
     private Integer productQuantity;
     @Schema(description = "总价")
-    private BigDecimal totalAmount;
+    private BigDecimal amount;
 }

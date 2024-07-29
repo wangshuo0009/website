@@ -63,8 +63,8 @@ public class AlipayServiceImpl implements AlipayService {
             Integer productQuantity = orderRequest.getProductQuantity();
             BigDecimal totalAmount = null;
 
-            if (!ObjectUtils.isEmpty(orderRequest.getTotalAmount())){
-                totalAmount = orderRequest.getTotalAmount();
+            if (!ObjectUtils.isEmpty(orderRequest.getAmount())){
+                totalAmount = orderRequest.getAmount();
             }else {
                 // 计算总价
                 totalAmount = productPrice.multiply(new BigDecimal(productQuantity));

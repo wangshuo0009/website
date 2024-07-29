@@ -351,7 +351,10 @@
                 }
             }
         });
-
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentYear = new Date().getFullYear();
+            document.getElementById('currentYear').textContent = currentYear;
+        });
         document.addEventListener('DOMContentLoaded', function() {
             const amountInput = document.getElementById('amount');
 
@@ -416,8 +419,8 @@
     <img src="./images/kisskiss.JPG" alt="卧槽，我图片呢？">
 </div>
 <footer>
-    <a href="https://github.com/wangshuo0009/cloudflare" target="_blank">&copy; 2024 wangshuo. 保留所有权利.</a> |
-    <a href="#" id="donateLink">捐赠</a>
+    <a href="https://github.com/wangshuo0009/cloudflare" target="_blank">&copy; <span id="currentYear"></span> wangshuo. 保留所有权利.</a> |
+    <a href="#" id="donateLink">支持</a>
 </footer>
 <div id="paymentModal" class="modal">
     <div class="modal-content">
