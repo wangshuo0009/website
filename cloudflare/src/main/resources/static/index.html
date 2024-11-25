@@ -296,7 +296,8 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(paymentData)
+                        body: JSON.stringify(paymentData),
+                        credentials: 'include', // 确保 cookies 或认证凭据被发送
                     })
                         .then(response => response.json())
                         .then(data => {
