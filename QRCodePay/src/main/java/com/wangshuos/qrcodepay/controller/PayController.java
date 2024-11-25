@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "支付")
 @Log4j2
 public class PayController {
-    @Autowired
+    @Autowired(required = false)
     private AlipayService alipayService;
 
     @PostMapping("/alipay")

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat Client</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #d0e7ff; /* 浅蓝色背景 */
+            text-align: center;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* 使容器高度适应视口 */
+            max-width: 100vw; /* 使容器宽度适应视口 */
+            overflow: hidden; /* 防止内容溢出 */
+        }
+        .chat-header {
+            background-color: white; /* 白色背景 */
+            color: #4a90e2; /* 蓝色标题 */
+            text-align: center;
+            border-bottom: 2px solid #b0c7e1; /* 底部边框 */
+        }
+        .chat-body {
+            flex: 1;
+            padding: 0rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem; /* 10px */
+            overflow-y: auto;
+            background-color: #e9f4ff; /* 较浅的背景色 */
+        }
+        .message {
+            max-width: 70%;
+            padding: 0.4rem 1rem; /* 10px 20px */
+            border-radius: 1.25rem; /* 20px */
+            display: inline-block;
+            word-wrap: break-word;
+            position: relative;
+            text-align: left;
+            /*margin-bottom: 0.3125rem; !* 5px *!*/
+        }
+        .message-left {
+            background-color: #ffffff; /* 白色消息背景 */
+            border: 1px solid #b0c7e1; /* 边框 */
+            align-self: flex-start;
+            margin-left: 10px; /* 与左侧边框的距离 */
+
+        }
+        .message-right {
+            background-color: #4a90e2; /* 蓝色消息背景 */
+            color: white;
+            align-self: flex-end;
+            margin-right: 10px; /* 与左侧边框的距离 */
+
+        }
+        .chat-footer {
+            padding: 0.75rem; /* 12px */
+            background-color: white;
+            display: flex;
+            gap: 0.625rem; /* 10px */
+            border-top: 2px solid #b0c7e1; /* 顶部边框 */
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* 顶部阴影 */
+        }
+        .chat-footer input[type="text"] {
+            flex: 1;
+            padding: 0.625rem;
+            border-radius: 1.25rem; /* 20px */
+            border: 1px solid #b0c7e1;
+            font-size: 1rem;
+            box-sizing: border-box; /* 包含内边距和边框 */
+        }
+        .chat-footer button {
+            padding: 0.625rem 1.25rem; /* 10px 20px */
+            border-radius: 1.25rem; /* 20px */
+            border: none;
+            background-color: #4a90e2; /* 蓝色按钮背景 */
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <h2 id="welcomeMessage">正在建立连接...</h2>
+    </div>
+    <div id="messages" class="chat-body">
+        <span id="successMessage"></span>
+    </div>
+    <div class="chat-footer">
+        <input id="messageInput" type="text" placeholder="输入消息...">
+        <button id="sendButton">发送</button>
+    </div>
+</div>
+
+<script>
+    let socket;
+
+    // 获取用户ID
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('userName');
+    console.log(userId)
+    console.log(userName)
+    // 初始化 WebSocket
+    initializeWebSocket();
+
+
+    // 初始化 WebSocket 连接
+    function initializeWebSocket() {
+        // 使用 subprotocol 传递 userId
+        socket = new WebSocket('ws://localhost:9002/chat/' + userId);
+        // socket = new WebSocket('ws://localhost:9002/chat');
+        console.log(userId)
+        console.log(userName)
+        socket.addEventListener('open', event => {
+            console.log('连接已建立');
+            document.getElementById('welcomeMessage').innerText = userName;
+            document.getElementById('successMessage').innerText = `连接已建立!`;
+        });
+
+        socket.addEventListener('message', event => {
+            addMessage('对方', event.data);
+        });
+
+        socket.addEventListener('close', event => {
+            console.log('连接已关闭');
+        });
+
+        socket.addEventListener('error', event => {
+            console.error('WebSocket 错误:', event);
+        });
+    }
+
+    // 添加消息到聊天窗口
+    function addMessage(sender, message) {
+        const messagesDiv = document.getElementById('messages');
+        const newMessage = document.createElement('div');
+        newMessage.classList.add('message', sender === '对方' ? 'message-left' : 'message-right');
+        newMessage.textContent = message;
+
+        messagesDiv.appendChild(newMessage);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight; // 滚动到底部
+    }
+
+    // 发送消息到服务器
+    document.getElementById('sendButton').addEventListener('click', () => {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value;
+        if (message) {
+            addMessage('自己', message); // 显示自己发送的消息
+            socket.send(message);
+            messageInput.value = '';
+        }
+    });
+
+    // 监听回车键发送消息
+    document.getElementById('messageInput').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            document.getElementById('sendButton').click();
+        }
+    });
+
+
+
+</script>
+</body>
+</html>

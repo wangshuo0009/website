@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLConnection;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 /**
@@ -57,5 +59,21 @@ public class FileUtils {
             return null;
         }
     }
+
+    /**
+     * 创建日期 yyyyMMdd 存储路径
+     */
+    public static String createFilePath(String filePath) {
+        LocalDateTime now = LocalDateTime.now();
+        String yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd").format(now);
+        return filePath + File.separator + yyyyMMdd;
+    }
+    /**
+     * 创建日期 yyyyMMdd 存储路径包括文件名
+     */
+    public static String createFilePath(String filePath, String fileName) {
+        return createFilePath(filePath) + File.separator + fileName;
+    }
+
 
 }

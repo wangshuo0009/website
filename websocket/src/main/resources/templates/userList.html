@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/config.js"></script> <!-- 引用配置文件 -->
+
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #d0e7ff; /* 浅蓝色背景 */
+            display: flex;
+            justify-content: center; /* 居中对齐 */
+            align-items: center; /* 垂直居中 */
+            overflow: hidden; /* 禁用父页面的滚动 */
+
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: 1200px; /* 最大宽度适应大屏幕 */
+            height: 100%;
+            background-color: #e9f4ff; /* 较浅的背景色 */
+            border-radius: 10px; /* 圆角边框 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
+            overflow: hidden;
+        }
+
+        .user-list-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 400px; /* 用户列表宽度 */
+            height: 100%;
+            background-color: #e9f4ff; /* 较浅的背景色 */
+            border-right: 2px solid #b0c7e1; /* 右侧边框 */
+            overflow: hidden; /* 隐藏超出内容 */
+        }
+
+        .header {
+            background-color: white; /* 白色背景 */
+            color: #4a90e2; /* 蓝色标题 */
+            text-align: center;
+            border-bottom: 2px solid #b0c7e1; /* 添加底部边框 */
+            /*padding: 20px 10px;*/
+        }
+
+        .user-list {
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+            flex: 1;
+            overflow-y: auto;
+            /*padding: 1rem; !* 内边距 *!*/
+        }
+
+        .user-list-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #b0c7e1;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            background-color: #ffffff; /* 白色背景 */
+            border-radius: 5px; /* 圆角边框 */
+            margin-bottom: 0.5rem; /* 项目之间的间隔 */
+        }
+
+        .user-list-item:hover {
+            background-color: #c0ddff; /* 鼠标悬停时背景色 */
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%; /* 圆形头像 */
+            background-color: #b0c7e1;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 1.25rem;
+            color: #333;
+            margin: 0;
+            text-align: left;
+        }
+
+        .user-message {
+            font-size: 1rem;
+            color: #666;
+            margin: 0.25rem 0 0 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* 超长消息显示省略号 */
+            text-align: left;
+
+        }
+        .last-MessageTime{
+            font-size: 1rem;
+            color: #666;
+            margin: 0.25rem 0 0 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* 超长消息显示省略号 */
+            text-align: right;
+        }
+        .unread-message-count {
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            display: inline-block;
+        }
+        /* 移动端样式 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .user-list-container {
+                width: 100%;
+                max-width: none; /* 取消最大宽度限制 */
+                border: none;
+            }
+
+            .chat-container {
+                display: none; /* 移动端不显示 chat 容器 */
+            }
+        }
+
+        /* 电脑端样式 */
+        @media (min-width: 769px) {
+            .chat-container {
+                flex: 1;
+                background-color: #f7f7f7; /* chat 容器背景色 */
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="user-list-container">
+        <div class="header">
+            <h2>用户列表</h2>
+        </div>
+        <ul class="user-list" id="user-list">
+            <!-- 用户列表将在此处动态生成 -->
+        </ul>
+    </div>
+    <div class="chat-container" id="chat-container">
+        <!-- Chat content will be loaded here -->
+    </div>
+</div>
+
+<script>
+    window.onload = function() {
+        // 检查设备类型
+        if (window.innerWidth > 768) {
+            addChatContainer();
+        }
+
+        fetchUserList();
+        initializeWebSocket();
+    };
+
+    function addChatContainer() {
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.style.display = 'block'; // 确保 chat 容器在大屏幕上显示
+    }
+
+    function fetchUserList() {
+        fetch(API_BASE_URL + '/user/searchAllUser')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.code === 200) {
+                    renderUserList(data.data);
+                } else {
+                    console.error('Failed to fetch user list');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    let socket;
+    function initializeWebSocket() {
+        socket = new WebSocket(WEBSOCKET_BASE_URL + '/chat');
+        socket.addEventListener('open', event => {
+            console.log('连接已建立');
+        });
+
+        socket.addEventListener('message', event => {
+            window.location.reload();
+            addMessage('接收到的消息：', event.data);
+        });
+
+        socket.addEventListener('close', event => {
+            console.log('连接已关闭');
+        });
+
+        socket.addEventListener('error', event => {
+            console.error('WebSocket 错误:', event);
+        });
+    }
+
+    function renderUserList(users) {
+        const userList = document.getElementById('user-list');
+        userList.innerHTML = ''; // 清空当前列表
+
+        users.forEach(user => {
+            const listItem = document.createElement('li');
+            listItem.className = 'user-list-item';
+            listItem.onclick = () => openChat(user.id, user.name);
+
+            const avatar = document.createElement('div');
+            avatar.className = 'user-avatar';
+            avatar.textContent = user.name.charAt(0); // 使用用户名的首字母作为头像
+
+            const userDetails = document.createElement('div');
+            userDetails.className = 'user-details';
+
+            const userNameContainer = document.createElement('div');
+            userNameContainer.style.display = 'flex';
+            userNameContainer.style.alignItems = 'center';
+
+            const userName = document.createElement('p');
+            userName.className = 'user-name';
+            userName.textContent = user.name;
+
+            // 创建未读消息条数的元素
+            if (user.unreadMessageCount > 0) {
+                const unreadCount = document.createElement('span');
+                unreadCount.className = 'unread-message-count';
+                unreadCount.textContent = user.unreadMessageCount;
+
+                userNameContainer.appendChild(userName);
+                userNameContainer.appendChild(unreadCount);
+            } else {
+                userNameContainer.appendChild(userName);
+            }
+
+            const messageContainer = document.createElement('div');
+            messageContainer.style.display = 'flex';
+            messageContainer.style.justifyContent = 'space-between';
+            messageContainer.style.alignItems = 'center';
+
+            const userMessage = document.createElement('p');
+            userMessage.className = 'user-message';
+            userMessage.textContent = user.lastMessage;
+
+            const lastMessageTime = document.createElement('p');
+            lastMessageTime.className = 'last-MessageTime';
+            lastMessageTime.textContent = user.lastMessageTime;
+
+            messageContainer.appendChild(userMessage);
+            messageContainer.appendChild(lastMessageTime);
+
+            userDetails.appendChild(userNameContainer);
+            userDetails.appendChild(messageContainer);
+
+            listItem.appendChild(avatar);
+            listItem.appendChild(userDetails);
+
+            userList.appendChild(listItem);
+        });
+    }
+
+    function openChat(userId,userName) {
+        localStorage.setItem('userId', userId);
+        localStorage.setItem('userName', userName);
+
+        if (window.innerWidth <= 768) {
+            window.location.href = 'chat.html';
+        } else {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.innerHTML = ''; // 清空当前聊天区域
+
+            fetch(`chat.html`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = 'chat.html';
+                    iframe.style.display = 'block';
+                    iframe.style.width = '100%'; // 根据需要调整宽度
+                    iframe.style.height = '100%'; // 根据需要调整高度
+                    iframe.style.border = 'none'; // 移除边框
+                    iframe.style.overflow = 'hidden'; /* 禁用页面滚动 */
+                    // 禁用 iframe 自身的滚动条
+                    iframe.style.overflow = 'hidden';
+
+                    chatContainer.appendChild(iframe);
+
+                    // 移除未读消息提示
+                    const unreadBadge = document.querySelector('.unread-message-count');
+                    if (unreadBadge) {
+                        unreadBadge.remove();
+                    }
+                })
+                .catch(error => console.error('Error loading chat:', error));
+        }
+    }
+
+    window.addEventListener('message', function(event) {
+        // 检查消息的类型
+        if (event.data.type === 'websocketMessage') {
+            const messageData = event.data.data;
+
+            // 更新 userList 页面中的元素或刷新部分内容
+            console.log('Received message from chat page:', messageData);
+
+            // 例如，更新用户列表
+            fetchUserList();
+        }
+    });
+
+</script>
+</body>
+</html>

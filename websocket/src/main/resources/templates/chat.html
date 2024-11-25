@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket 聊天客户端</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/config.js"></script>
+    <style>
+        /* 现有的 CSS 样式 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #d0e7ff;
+            text-align: center;
+            overflow: hidden;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 100vw;
+            overflow: hidden;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            color: #4a90e2;
+            border-bottom: 2px solid #b0c7e1;
+            padding: 20px 10px;
+        }
+        .chat-header button {
+            background-color: transparent;
+            border: none;
+            font-size: 1.25rem;
+            color: #4a90e2;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .chat-header h2 {
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+        .chat-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+            overflow-y: auto;
+            background-color: #e9f4ff;
+            padding-top: 10px;
+        }
+        .message {
+            max-width: 70%;
+            padding: 0.4rem 1rem;
+            border-radius: 1.25rem;
+            display: inline-block;
+            word-wrap: break-word;
+            position: relative;
+            margin-bottom: 0.3125rem;
+        }
+        .message-left {
+            background-color: #ffffff;
+            border: 1px solid #b0c7e1;
+            align-self: flex-start;
+            margin-left: 10px;
+        }
+        .message-right {
+            background-color: #4a90e2;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            margin-right: 10px;
+        }
+        .chat-footer {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: white;
+            border-top: 2px solid #b0c7e1;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .chat-footer input[type="text"] {
+            flex: 1;
+            padding: 0.625rem;
+            border-radius: 1.25rem;
+            border: 1px solid #b0c7e1;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .chat-footer button {
+            padding: 0.625rem 1.25rem;
+            border-radius: 1.25rem;
+            border: none;
+            background-color: #4a90e2;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 10px;
+        }
+        .chat-footer input[type="file"] {
+            display: none;
+        }
+        .upload-button {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        <span class="back-button" id="back-button">←</span>
+        <h2 id="welcomeMessage">正在建立连接...</h2>
+    </div>
+    <div id="messages" class="chat-body">
+        <span id="successMessage"></span>
+    </div>
+    <div class="chat-footer">
+        <input id="messageInput" type="text" placeholder="输入消息...">
+        <button class="upload-button" id="uploadButton">📎</button>
+        <button id="sendButton">发送</button>
+        <input id="fileInput" type="file" accept="image/*,video/*">
+    </div>
+</div>
+
+<script>
+    let socket;
+    let pageNum = 1;
+    const pageSize = 20;
+    let search = true;
+    let noMoreMessagesDisplayed = false;
+
+    const userId = localStorage.getItem('userId');
+    const userName = localStorage.getItem('userName');
+    console.log(userId);
+    console.log(userName);
+
+    loadHistoryMessages(pageNum);
+    initializeWebSocket();
+
+    async function loadHistoryMessages(pageNum) {
+        try {
+            if (!search) {
+                if (!noMoreMessagesDisplayed) {
+                    displayNoMoreMessages();
+                    noMoreMessagesDisplayed = true;
+                }
+                return;
+            }
+            const response = await fetch(`${API_BASE_URL}/chatMessage/searchMessage?acceptUserId=${userId}&pageNum=${pageNum}&pageSize=${pageSize}`);
+            if (!response.ok) {
+                throw new Error('网络响应失败: ' + response.statusText);
+            }
+            const historyMessages = await response.json();
+            if (historyMessages.code === 200) {
+                if (historyMessages.data.current >= historyMessages.data.pages) {
+                    search = false;
+                }
+                displayHistoryMessages(historyMessages.data.records);
+            }
+        } catch (error) {
+            console.error('加载历史消息时出错:', error);
+        }
+    }
+
+    function displayHistoryMessages(messages) {
+        const messagesDiv = document.getElementById('messages');
+        messages.forEach(msg => {
+            const sender = String(msg.sendUserId) === String(userId) ? '对方' : '自己';
+            addMessage(sender, msg.content, msg.createTime, msg.isReader);
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function initializeWebSocket() {
+        socket = new WebSocket(WEBSOCKET_BASE_URL + '/chat?' + userId);
+        socket.addEventListener('open', event => {
+            console.log('连接已建立');
+            document.getElementById('welcomeMessage').innerText = userName;
+        });
+
+        socket.addEventListener('message', event => {
+            addMessage('对方', event.data);
+            window.parent.postMessage({
+                type: 'websocketMessage',
+                data: event.data
+            }, '*');
+        });
+
+        socket.addEventListener('close', event => {
+            console.log('连接已关闭');
+        });
+
+        socket.addEventListener('error', event => {
+            console.error('WebSocket 错误:', event);
+        });
+    }
+
+    function addMessage(sender, message, timestamp = '', isReader) {
+        const messagesDiv = document.getElementById('messages');
+
+        const messageWrapper = document.createElement('div');
+        messageWrapper.style.display = 'flex';
+        messageWrapper.style.flexDirection = 'column';
+        messageWrapper.style.alignItems = sender === '对方' ? 'flex-start' : 'flex-end';
+        messageWrapper.style.marginBottom = '10px';
+
+        const timeElement = document.createElement('div');
+        timeElement.style.fontSize = '0.75rem';
+        timeElement.style.color = '#888';
+        timeElement.textContent = timestamp;
+
+        const newMessage = document.createElement('div');
+        if (!isReader && sender === '对方') {
+            newMessage.style.color = '#F44336';
+        }
+        newMessage.classList.add('message', sender === '对方' ? 'message-left' : 'message-right');
+        // 检查消息是否包含 base64 编码的图片数据
+        // 检查消息是否包含 base64 编码的图片数据
+        if (message.startsWith('data:image')) {
+            const imgElement = document.createElement('img');
+            imgElement.src = message;
+            imgElement.style.maxWidth = '100%';
+            imgElement.style.maxHeight = '300px';
+            imgElement.style.cursor = 'pointer'; // 鼠标悬停时显示手型光标
+
+            // 点击事件，弹出模态框显示完整图片
+            imgElement.addEventListener('click', () => {
+                showImageInModal(message);
+            });
+
+            newMessage.appendChild(imgElement);
+        }else {
+            newMessage.innerHTML = message;
+        }
+
+        messageWrapper.appendChild(newMessage);
+        messageWrapper.appendChild(timeElement);
+
+        messagesDiv.appendChild(messageWrapper);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function displayNoMoreMessages() {
+        const messagesDiv = document.getElementById('messages');
+        const noMoreMessages = document.createElement('div');
+        noMoreMessages.style.textAlign = 'center';
+        noMoreMessages.style.color = '#888';
+        noMoreMessages.style.padding = '10px 0';
+        noMoreMessages.textContent = '已无更早的消息';
+        messagesDiv.prepend(noMoreMessages);
+    }
+
+    document.getElementById('sendButton').addEventListener('click', () => {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value;
+        if (message) {
+            addMessage('自己', message);
+            socket.send(message);
+            messageInput.value = '';
+        }
+    });
+
+    document.getElementById('messageInput').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            document.getElementById('sendButton').click();
+        }
+    });
+
+    document.getElementById('messages').addEventListener('scroll', () => {
+        const messagesDiv = document.getElementById('messages');
+        if (messagesDiv.scrollTop === 0) {
+            pageNum++;
+            loadHistoryMessages(pageNum);
+        }
+    });
+
+    document.getElementById("back-button").addEventListener("click", function () {
+        window.top.location.href = 'userList.html';
+    });
+
+    document.getElementById('uploadButton').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const fileType = file.type.split('/')[0]; // image or video
+                const fileUrl = e.target.result;
+                const message = `<${fileType} src="${fileUrl}" style="max-width: 100%; max-height: 300px; cursor: pointer;">`;
+                addMessage('自己', message);
+
+                // 为图片添加点击放大事件
+                if (fileType === 'image') {
+                    const imgElement = document.querySelector(`img[src="${fileUrl}"]`);
+                    if (imgElement) {
+                        imgElement.addEventListener('click', () => {
+                            showImageInModal(fileUrl);
+                        });
+                    }
+                }
+
+                // 使用FormData发送文件
+                const formData = new FormData();
+                formData.append("file", file);
+
+                fetch(API_BASE_URL + '/chatMessage/file/' + userId, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('文件上传成功', data);
+                    })
+                    .catch(error => {
+                        console.error('文件上传失败', error);
+                    });
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function showImageInModal(imageSrc) {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.zIndex = '1000';
+
+        const fullImg = document.createElement('img');
+        fullImg.src = imageSrc;
+        fullImg.style.width = 'auto';
+        fullImg.style.height = 'auto';
+        fullImg.style.maxWidth = '90%';
+        fullImg.style.maxHeight = '90%';
+
+        modal.appendChild(fullImg);
+
+        // 点击模态框关闭图片查看
+        modal.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+
+        document.body.appendChild(modal);
+    }
+
+</script>
+</body>
+</html>

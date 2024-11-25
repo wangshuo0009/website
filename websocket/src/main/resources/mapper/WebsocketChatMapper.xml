@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wangshuos.websocket.mapper.WebsocketChatMapper">
+
+
+
+    <select id="selectLastChat" resultType="com.wangshuos.websocket.response.WebSocketChatResponse">
+        SELECT
+            t1.*,
+            CASE
+            WHEN t1.send_user_id = #{userId} THEN t1.accept_user_id
+            ELSE t1.send_user_id
+            END AS account,
+
+            (
+                SELECT COUNT(*)
+                FROM t_websocket_chat t3
+                WHERE
+                t3.accept_user_id = #{userId}
+                AND t3.is_reader = false
+                AND ((t3.send_user_id = t1.send_user_id AND t3.accept_user_id = t1.accept_user_id) OR
+                     (t3.send_user_id = t1.accept_user_id AND t3.accept_user_id = t1.send_user_id))
+            ) AS unreadMessageCount
+        FROM
+            t_websocket_chat t1
+            JOIN (
+                SELECT
+                    LEAST(send_user_id, accept_user_id) AS user1,
+                    GREATEST(send_user_id, accept_user_id) AS user2,
+                    MAX(create_time) AS latest_time
+                FROM
+                    t_websocket_chat
+                WHERE
+                    send_user_id = #{userId} OR accept_user_id = #{userId}
+                GROUP BY
+                    user1, user2
+            ) t2 ON ((t1.send_user_id = t2.user1 AND t1.accept_user_id = t2.user2) OR
+                    (t1.send_user_id = t2.user2 AND t1.accept_user_id = t2.user1))
+                AND t1.create_time = t2.latest_time
+        WHERE
+            t1.send_user_id = #{userId} OR t1.accept_user_id = #{userId};
+    </select>
+</mapper>
